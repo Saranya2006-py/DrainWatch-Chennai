@@ -1,9 +1,26 @@
 [
   {
-    "id": 1766481697885,
+    "id": 1766822981964,
     "location": "Velachery",
     "issue": "Drain blocked with plastic waste",
     "severity": "High",
-    "createdAt": "2025-12-23T09:21:37.885Z"
+    "status": "Resolved",
+    "createdAt": "2025-12-27T08:09:41.964Z"
+  },
+  {
+    "id": 1766827137409,
+    "location": "T Nagar",
+    "issue": "Water overflow",
+    "severity": "High",
+    "status": "Resolved",
+    "createdAt": "2025-12-27T09:18:57.409Z"
+  },
+  {
+    "id": 1766827664802,
+    "location": "T Nagar",
+    "issue": "plastic blockage",
+    "severity": "Low",
+    "status": "Resolved",
+    "createdAt": "2025-12-27T09:27:44.802Z"
   }
 ]
