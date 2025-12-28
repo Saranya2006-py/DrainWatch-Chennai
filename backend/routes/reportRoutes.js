@@ -5,16 +5,18 @@ const {
   getReports,
   createReport,
   updateReportStatus,
-  deleteReport
+  deleteReport,
 } = require("../controllers/reportController");
 
 // GET all reports (with filters)
+// Example: /api/reports?status=Pending&severity=High&location=Velachery
 router.get("/reports", getReports);
 
-// CREATE a report
+// CREATE a new report
 router.post("/reports", createReport);
 
-// UPDATE report status
+// UPDATE report status (Pending / In Progress / Resolved)
+// Body: { "status": "Resolved" }
 router.patch("/reports/:id", updateReportStatus);
 
 // DELETE a report

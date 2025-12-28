@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import {
   getReports,
   createReport,
@@ -9,38 +9,45 @@ import {
 import Dashboard from "./components/Dashboard";
 import Filters from "./components/Filters";
 import ReportCard from "./components/ReportCard";
+import Login from "./components/Login";
+import Header from "./components/Header";
+import MapPicker from "./components/MapPicker";
 
 function App() {
   const [reports, setReports] = useState([]);
 
-  // Form state
-  const [location, setLocation] = useState("");
+  // 🔐 User state
+  const [user, setUser] = useState(
+    JSON.parse(localStorage.getItem("user")) || null
+  );
+
+  // 📝 Report form
+  const [location, setLocation] = useState(null); // 📍 Map location
   const [issue, setIssue] = useState("");
   const [severity, setSeverity] = useState("Low");
 
-  // Filter state
+  // 🔍 Filters
   const [filterLocation, setFilterLocation] = useState("");
   const [filterStatus, setFilterStatus] = useState("");
   const [filterSeverity, setFilterSeverity] = useState("");
 
-  // 🎨 Color helpers
-  const getSeverityColor = (severity) => {
-    if (severity === "High") return "red";
-    if (severity === "Medium") return "orange";
-    return "green";
+  /* ================= AUTH ================= */
+
+  const handleLogin = (userData) => {
+    localStorage.setItem("user", JSON.stringify(userData));
+    setUser(userData);
   };
 
-  const getStatusColor = (status) => {
-    if (status === "Resolved") return "green";
-    if (status === "In Progress") return "orange";
-    return "gray";
+  const handleLogout = () => {
+    localStorage.removeItem("user");
+    setUser(null);
   };
 
-  // 🔽 Sort: High severity first, then latest
-  const sortReports = (reports) => {
+  /* ================= SORT ================= */
+
+  const sortReports = (list) => {
     const severityOrder = { High: 3, Medium: 2, Low: 1 };
-
-    return [...reports].sort((a, b) => {
+    return [...list].sort((a, b) => {
       if (severityOrder[b.severity] !== severityOrder[a.severity]) {
         return severityOrder[b.severity] - severityOrder[a.severity];
       }
@@ -48,108 +55,129 @@ function App() {
     });
   };
 
-  const loadReports = () => {
+  /* ================= API ================= */
+
+  const loadReports = useCallback(() => {
     getReports({
       location: filterLocation,
       status: filterStatus,
       severity: filterSeverity,
-    }).then((data) => setReports(data));
-  };
+    }).then(setReports);
+  }, [filterLocation, filterStatus, filterSeverity]);
 
   useEffect(() => {
     loadReports();
-  }, [filterLocation, filterStatus, filterSeverity]);
+  }, [loadReports]);
+
+  /* ================= ACTIONS ================= */
 
   const handleSubmit = async () => {
     if (!location || !issue) {
-      alert("Please fill all fields");
+      alert("Please select location on map and describe the issue");
       return;
     }
 
-    await createReport({ location, issue, severity });
-    setLocation("");
+    await createReport({
+      location, // { lat, lng }
+      issue,
+      severity,
+    });
+
+    setLocation(null);
     setIssue("");
     setSeverity("Low");
     loadReports();
   };
 
   const handleStatusChange = async (id, status) => {
+    if (user?.role !== "admin") return;
     await updateReportStatus(id, status);
     loadReports();
   };
 
   const handleDelete = async (id) => {
-    const confirmDelete = window.confirm(
-      "Are you sure you want to delete this report?"
-    );
-    if (!confirmDelete) return;
+    if (user?.role !== "admin") return;
+    if (!window.confirm("Are you sure you want to delete this report?")) return;
 
     await deleteReport(id);
     loadReports();
   };
 
+  /* ================= LOGIN ================= */
+
+  if (!user) {
+    return <Login onLogin={handleLogin} />;
+  }
+
+  /* ================= MAIN UI ================= */
+
   return (
-    <div style={{ padding: "20px", maxWidth: "700px", margin: "auto" }}>
-      <h1>🚰 DrainWatch Chennai</h1>
+    <div>
+      <Header user={user} onLogout={handleLogout} />
 
-      {/* 📊 Dashboard */}
-      <Dashboard reports={reports} />
+      <div className="container">
+        {/* 📊 Dashboard */}
+        <Dashboard reports={reports} />
 
-      {/* 🔍 Filters */}
-      <Filters
-        filterLocation={filterLocation}
-        setFilterLocation={setFilterLocation}
-        filterStatus={filterStatus}
-        setFilterStatus={setFilterStatus}
-        filterSeverity={filterSeverity}
-        setFilterSeverity={setFilterSeverity}
-      />
+        {/* 🔍 Filters */}
+        <Filters
+          filterLocation={filterLocation}
+          setFilterLocation={setFilterLocation}
+          filterStatus={filterStatus}
+          setFilterStatus={setFilterStatus}
+          filterSeverity={filterSeverity}
+          setFilterSeverity={setFilterSeverity}
+        />
 
-      <hr />
+        <hr />
 
-      {/* ➕ Report Form */}
-      <h3>➕ Report Drain Issue</h3>
+        {/* ➕ Report Form */}
+        <h3>➕ Report Drain Issue</h3>
 
-      <input
-        placeholder="Location"
-        value={location}
-        onChange={(e) => setLocation(e.target.value)}
-      />
-      <br /><br />
+        <label>Location (Map Based)</label>
+        <MapPicker location={location} setLocation={setLocation} />
 
-      <textarea
-        placeholder="Describe the issue"
-        value={issue}
-        onChange={(e) => setIssue(e.target.value)}
-      />
-      <br /><br />
+        <label>Issue Description</label>
+        <textarea
+          value={issue}
+          onChange={(e) => setIssue(e.target.value)}
+        />
 
-      <select value={severity} onChange={(e) => setSeverity(e.target.value)}>
-        <option>Low</option>
-        <option>Medium</option>
-        <option>High</option>
-      </select>
-      <br /><br />
+        <label>Severity</label>
+        <select
+          value={severity}
+          onChange={(e) => setSeverity(e.target.value)}
+        >
+          <option>Low</option>
+          <option>Medium</option>
+          <option>High</option>
+        </select>
 
-      <button onClick={handleSubmit}>Submit Report</button>
+        <button className="primary-btn" onClick={handleSubmit}>
+          Submit Report
+        </button>
 
-      <hr />
+        <hr />
 
-      {/* 📋 Report List */}
-      {reports.length === 0 ? (
-        <p>No reports found</p>
-      ) : (
-        sortReports(reports).map((report) => (
-          <ReportCard
-            key={report.id}
-            report={report}
-            onStatusChange={handleStatusChange}
-            onDelete={handleDelete}
-            getSeverityColor={getSeverityColor}
-            getStatusColor={getStatusColor}
-          />
-        ))
-      )}
+        {/* 📋 Reports */}
+        {reports.length === 0 ? (
+          <p>No reports found</p>
+        ) : (
+          sortReports(reports).map((report) => (
+            <ReportCard
+              key={report.id}
+              report={report}
+              user={user}
+              onStatusChange={handleStatusChange}
+              onDelete={handleDelete}
+            />
+          ))
+        )}
+
+        <p className="footer-text">
+          © Government of Tamil Nadu | DrainWatch Chennai – Academic Project
+        </p>
+      </div>
     </div>
   );
 }

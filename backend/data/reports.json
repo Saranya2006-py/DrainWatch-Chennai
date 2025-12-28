@@ -4,16 +4,18 @@
     "location": "Velachery",
     "issue": "Drain blocked with plastic waste",
     "severity": "High",
-    "status": "Resolved",
-    "createdAt": "2025-12-27T08:09:41.964Z"
+    "status": "Pending",
+    "createdAt": "2025-12-27T08:09:41.964Z",
+    "updatedAt": "2025-12-28T07:21:46.689Z"
   },
   {
     "id": 1766827137409,
     "location": "T Nagar",
     "issue": "Water overflow",
     "severity": "High",
-    "status": "Resolved",
-    "createdAt": "2025-12-27T09:18:57.409Z"
+    "status": "In Progress",
+    "createdAt": "2025-12-27T09:18:57.409Z",
+    "updatedAt": "2025-12-28T07:18:30.609Z"
   },
   {
     "id": 1766827664802,
@@ -22,5 +24,50 @@
     "severity": "Low",
     "status": "Resolved",
     "createdAt": "2025-12-27T09:27:44.802Z"
+  },
+  {
+    "id": 1766918815850,
+    "location": "korattur",
+    "issue": "improper plastic disposal",
+    "severity": "Medium",
+    "status": "Pending",
+    "createdAt": "2025-12-28T10:46:55.850Z",
+    "updatedAt": null
+  },
+  {
+    "id": 1766919711215,
+    "location": {
+      "lat": 13.0449408,
+      "lng": 80.2193408
+    },
+    "issue": "plastic dump",
+    "severity": "Low",
+    "status": "Pending",
+    "createdAt": "2025-12-28T11:01:51.215Z",
+    "updatedAt": null
+  },
+  {
+    "id": 1766921170381,
+    "location": {
+      "lat": 13.0449408,
+      "lng": 80.2193408
+    },
+    "issue": "water blockage",
+    "severity": "High",
+    "status": "Pending",
+    "createdAt": "2025-12-28T11:26:10.381Z",
+    "updatedAt": null
+  },
+  {
+    "id": 1766922988110,
+    "location": {
+      "lat": 13.082223869216765,
+      "lng": 80.25582754607059
+    },
+    "issue": "waste blockage",
+    "severity": "Medium",
+    "status": "Pending",
+    "createdAt": "2025-12-28T11:56:28.110Z",
+    "updatedAt": null
   }
 ]

@@ -25,21 +25,18 @@ exports.getReports = (req, res) => {
     let reports = readReports();
     const { status, severity, location } = req.query;
 
-    // Filter by status
     if (status) {
       reports = reports.filter(
         (r) => r.status?.toLowerCase() === status.toLowerCase()
       );
     }
 
-    // Filter by severity
     if (severity) {
       reports = reports.filter(
         (r) => r.severity?.toLowerCase() === severity.toLowerCase()
       );
     }
 
-    // Filter by location (partial match)
     if (location) {
       reports = reports.filter(
         (r) => r.location?.toLowerCase().includes(location.toLowerCase())
@@ -53,7 +50,7 @@ exports.getReports = (req, res) => {
   }
 };
 
-// POST new report
+// POST new report (Citizen)
 exports.createReport = (req, res) => {
   const { location, issue, severity } = req.body;
 
@@ -68,6 +65,7 @@ exports.createReport = (req, res) => {
     severity,
     status: "Pending",
     createdAt: new Date().toISOString(),
+    updatedAt: null,
   };
 
   try {
@@ -85,9 +83,22 @@ exports.createReport = (req, res) => {
   }
 };
 
-// PATCH: Update report status to Resolved
+// PATCH: Update report status (ADMIN ONLY)
 exports.updateReportStatus = (req, res) => {
   const { id } = req.params;
+  const { status } = req.body;
+
+  // 🔐 Admin check
+  const role = req.headers["x-user-role"];
+  if (role !== "admin") {
+    return res.status(403).json({
+      message: "Access denied. Admin only.",
+    });
+  }
+
+  if (!status) {
+    return res.status(400).json({ message: "Status is required" });
+  }
 
   try {
     const reports = readReports();
@@ -97,11 +108,13 @@ exports.updateReportStatus = (req, res) => {
       return res.status(404).json({ message: "Report not found" });
     }
 
-    report.status = "Resolved";
+    report.status = status;
+    report.updatedAt = new Date().toISOString();
+
     writeReports(reports);
 
     res.status(200).json({
-      message: "Report status updated to Resolved",
+      message: "Report status updated successfully",
       report,
     });
   } catch (error) {
@@ -110,21 +123,27 @@ exports.updateReportStatus = (req, res) => {
   }
 };
 
-// DELETE report by ID
+// DELETE report (ADMIN ONLY)
 exports.deleteReport = (req, res) => {
+  // 🔐 Admin check
+  const role = req.headers["x-user-role"];
+  if (role !== "admin") {
+    return res.status(403).json({
+      message: "Access denied. Admin only.",
+    });
+  }
+
   const reportId = Number(req.params.id);
 
   try {
     const reports = readReports();
-    const filteredReports = reports.filter(
-      (report) => report.id !== reportId
-    );
+    const updatedReports = reports.filter((r) => r.id !== reportId);
 
-    if (reports.length === filteredReports.length) {
+    if (reports.length === updatedReports.length) {
       return res.status(404).json({ message: "Report not found" });
     }
 
-    writeReports(filteredReports);
+    writeReports(updatedReports);
 
     res.status(200).json({
       message: "Report deleted successfully",
