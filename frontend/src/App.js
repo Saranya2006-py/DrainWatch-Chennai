@@ -22,7 +22,7 @@ function App() {
   );
 
   // 📝 Report form
-  const [location, setLocation] = useState(null); // 📍 Map location
+  const [location, setLocation] = useState(null); // ✅ OBJECT { name, ward, lat, lng }
   const [issue, setIssue] = useState("");
   const [severity, setSeverity] = useState("Low");
 
@@ -73,12 +73,12 @@ function App() {
 
   const handleSubmit = async () => {
     if (!location || !issue) {
-      alert("Please select location on map and describe the issue");
+      alert("Please select a location on the map and describe the issue");
       return;
     }
 
     await createReport({
-      location, // { lat, lng }
+      location, // ✅ full object saved
       issue,
       severity,
     });
@@ -135,7 +135,13 @@ function App() {
         <h3>➕ Report Drain Issue</h3>
 
         <label>Location (Map Based)</label>
-        <MapPicker location={location} setLocation={setLocation} />
+        <MapPicker setLocation={setLocation} />
+
+        {location && (
+          <p style={{ color: "#0d6efd", marginTop: "6px" }}>
+            📍 <strong>{location.name}</strong> ({location.ward})
+          </p>
+        )}
 
         <label>Issue Description</label>
         <textarea

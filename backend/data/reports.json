@@ -69,5 +69,14 @@
     "status": "Pending",
     "createdAt": "2025-12-28T11:56:28.110Z",
     "updatedAt": null
+  },
+  {
+    "id": 1766986740066,
+    "location": "Zone 8 Anna Nagar",
+    "issue": "improper disposal",
+    "severity": "Low",
+    "status": "Pending",
+    "createdAt": "2025-12-29T05:39:00.066Z",
+    "updatedAt": null
   }
 ]

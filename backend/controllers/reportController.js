@@ -37,9 +37,11 @@ exports.getReports = (req, res) => {
       );
     }
 
+    // ✅ LOCATION FILTER (name OR ward)
     if (location) {
-      reports = reports.filter(
-        (r) => r.location?.toLowerCase().includes(location.toLowerCase())
+      reports = reports.filter((r) =>
+        r.location?.name?.toLowerCase().includes(location.toLowerCase()) ||
+        r.location?.ward?.toLowerCase().includes(location.toLowerCase())
       );
     }
 
@@ -54,13 +56,29 @@ exports.getReports = (req, res) => {
 exports.createReport = (req, res) => {
   const { location, issue, severity } = req.body;
 
-  if (!location || !issue || !severity) {
-    return res.status(400).json({ message: "All fields are required" });
+  // ✅ Validate structured location
+  if (
+    !location ||
+    !location.name ||
+    !location.ward ||
+    location.lat == null ||
+    location.lng == null ||
+    !issue ||
+    !severity
+  ) {
+    return res.status(400).json({
+      message: "Location, issue, and severity are required",
+    });
   }
 
   const newReport = {
     id: Date.now(),
-    location,
+    location: {
+      name: location.name,
+      ward: location.ward,
+      lat: location.lat,
+      lng: location.lng,
+    },
     issue,
     severity,
     status: "Pending",

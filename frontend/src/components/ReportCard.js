@@ -20,26 +20,38 @@ function ReportCard({ report, user, onStatusChange, onDelete }) {
     .replace(/\s+/g, "-")
     .toLowerCase()}`;
 
-  // ✅ Safe location rendering (string OR {lat, lng})
+  /* ================= LOCATION RENDER ================= */
+
   const renderLocation = () => {
     if (!report.location) return "Unknown location";
 
-    // Old data (string)
+    // 🔹 OLD DATA (string)
     if (typeof report.location === "string") {
       return report.location;
     }
 
-    // New data (Google Maps coords)
+    // 🔹 NEW DATA (object)
     if (typeof report.location === "object") {
-      const { lat, lng } = report.location;
+      const { name, ward, lat, lng } = report.location;
+
       return (
-        <a
-          href={`https://www.google.com/maps?q=${lat},${lng}`}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          View location on map
-        </a>
+        <>
+          <div>
+            <strong>{name}</strong>
+            {ward && <span> ({ward})</span>}
+          </div>
+
+          {lat && lng && (
+            <a
+              href={`https://www.google.com/maps?q=${lat},${lng}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="map-link"
+            >
+              📍 View on Google Maps
+            </a>
+          )}
+        </>
       );
     }
 

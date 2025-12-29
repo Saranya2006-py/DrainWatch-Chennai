@@ -1,8 +1,8 @@
 import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
+import { useState } from "react";
 import L from "leaflet";
-import "leaflet/dist/leaflet.css";
 
-// Fix default marker icon issue
+// Fix marker icon
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl:
@@ -13,39 +13,61 @@ L.Icon.Default.mergeOptions({
     "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
 });
 
-function LocationMarker({ setLocation }) {
-  useMapEvents({
-    click(e) {
-      setLocation({
-        lat: e.latlng.lat,
-        lng: e.latlng.lng,
-      });
-    },
-  });
-  return null;
+// Reverse geocoding (English)
+async function getLocationDetails(lat, lng) {
+  const res = await fetch(
+    `https://nominatim.openstreetmap.org/reverse?format=json&accept-language=en&lat=${lat}&lon=${lng}`
+  );
+  const data = await res.json();
+
+  return {
+    name:
+      data.address?.suburb ||
+      data.address?.neighbourhood ||
+      data.address?.city ||
+      data.display_name ||
+      "Unknown location",
+    ward:
+      data.address?.suburb ||
+      data.address?.neighbourhood ||
+      "Unknown ward",
+    lat,
+    lng,
+  };
 }
 
-function MapPicker({ location, setLocation }) {
-  const defaultPosition = location || {
-    lat: 13.0827, // Chennai
-    lng: 80.2707,
-  };
+function LocationMarker({ onSelect }) {
+  const [position, setPosition] = useState(null);
 
+  useMapEvents({
+    async click(e) {
+      setPosition(e.latlng);
+
+      const locationDetails = await getLocationDetails(
+        e.latlng.lat,
+        e.latlng.lng
+      );
+
+      onSelect(locationDetails);
+    },
+  });
+
+  return position ? <Marker position={position} /> : null;
+}
+
+function MapPicker({ setLocation }) {
   return (
-    <div style={{ height: "400px", width: "100%", marginBottom: "16px" }}>
+    <div style={{ height: "300px", marginBottom: "15px" }}>
       <MapContainer
-        center={defaultPosition}
-        zoom={15}
+        center={[13.0827, 80.2707]}
+        zoom={12}
         style={{ height: "100%", width: "100%" }}
       >
         <TileLayer
-          attribution='&copy; OpenStreetMap contributors'
+          attribution="© OpenStreetMap contributors"
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
-
-        <LocationMarker setLocation={setLocation} />
-
-        {location && <Marker position={[location.lat, location.lng]} />}
+        <LocationMarker onSelect={setLocation} />
       </MapContainer>
     </div>
   );
